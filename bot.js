@@ -23,7 +23,7 @@ bot.on('message', async msg => {
                 bot.sendMessage(chatId, 'Список всех шаблонов. Чтобы посмотреть превью, нажми на кнопку', {
                     reply_markup: JSON.stringify({
                         inline_keyboard: list.map(el => 
-                            [{text: `${el.creoName}     ${el.formats}     ${el.hashes}`, callback_data: el.creoName}]
+                            [{text: `${el.creoName}  |  ${el.hashes.map(hash => `#${hash}`).join(' ')}  |  ${el.duration}`, callback_data: el.creoName}]
                         )
                     })
                 })
@@ -43,7 +43,7 @@ bot.on('message', async msg => {
                             bot.sendMessage(chatId, 'Список всех шаблонов. Чтобы посмотреть превью, нажми на кнопку', {
                                 reply_markup: JSON.stringify({
                                     inline_keyboard: list.map(el => 
-                                        [{text: `${el.creoName}     ${el.formats}     ${el.hashes}`, callback_data: el.creoName}]
+                                        [{text: `${el.creoName}  |  ${el.hashes.map(hash => `#${hash}`).join(' ')}  |  ${el.duration}`, callback_data: el.creoName}]
                                     )
                                 })
                             })
@@ -52,7 +52,6 @@ bot.on('message', async msg => {
                         await bot.sendMessage(chatId, `Привет, ${pass.user.webName}!`, {
                             reply_markup: {
                                 keyboard: [
-                                    [{text: 'Таблица', web_app: {url: process.env.WEB_APP_URL}}],
                                     [{text: 'Добавить шаблон', web_app: {url: process.env.WEB_APP_URL_FORM}}],
                                     [{text: 'Удалить шаблон'}],
                                     [{text: 'Список всех шаблонов'}],
@@ -77,13 +76,16 @@ bot.on('message', async msg => {
                     ids.forEach(async el => {
                         await bot.sendVideo(el, `./static/${parsedData.creoVideo}`, {
                             caption: 
-`💥 Доступен новый шаблон: ${parsedData.creoName}
+`🔥Новый шаблон 
+
+🎰${parsedData.creoName}
     
-${parsedData.hashes}
+${parsedData.hashes.map(hash => `#${hash}\n`).join('')}
+Референсы: ${parsedData.refers}
     
-Форматы: ${parsedData.formats}
-    
-ГЕО: ${parsedData.geo}`,
+Длительность: ${parsedData.duration} сек
+
+Форматы: ${parsedData.formats}`,
                         })
                     })
                 } catch (error) {
@@ -97,7 +99,6 @@ ${parsedData.hashes}
 })
 
 
-
 bot.on('callback_query', async msg => {
     const data = msg.data
     const chatId = msg.message.chat.id
@@ -108,7 +109,6 @@ bot.on('callback_query', async msg => {
     const admin = await getAdmin()
 
     if (data.startsWith('Заказать')) {
-        console.log(data)
         const template = data.match(/[A-z]+[0-9]+/gm)?.join('')
 
         await bot.editMessageReplyMarkup({
@@ -121,25 +121,34 @@ bot.on('callback_query', async msg => {
         await bot.sendMessage(admin.chatId, `${username} хочет заказать шаблон ${template}`)
         await bot.sendMessage(chatId, `Запрос направлен Менеджеру`)
     } else {
+        // function delay(ms) {
+        //     return new Promise((resolve) => setTimeout(resolve, ms))
+        // }
+        // await delay(2000)
         const oneCreo = await getOneCreo(data)
         try {
             await bot.sendVideo(chatId, `./static/${oneCreo.creoVideo}`, {
                 caption: 
 `Шаблон: ${oneCreo.creoName}
     
-${oneCreo.hashes}
+🎰${oneCreo.creoName}
     
-Форматы: ${oneCreo.formats}
+${oneCreo.hashes.map(hash => `#${hash}\n`).join('')}
+Референсы: ${oneCreo.refers}
+
+Длительность: ${oneCreo.duration} сек
     
-ГЕО: ${oneCreo.geo}`,
-                reply_markup: {
-                    inline_keyboard: [
-                        [{text: `Заказать`, callback_data: `Заказать ${oneCreo.creoName}`}]
-                    ]
-                }
+Форматы: ${oneCreo.formats}`
+// ,
+//                 reply_markup: {
+//                     inline_keyboard: [
+//                         [{text: `Заказать`, callback_data: `Заказать ${oneCreo.creoName}`}]
+//                     ]
+//                 }
             })
         } catch (error) {
-            await bot.sendMessage(chatId, 'Ошибка добавления')
+            console.log(error)
+            await bot.sendMessage(chatId, 'Ошибка вывода')
         }
     }
     

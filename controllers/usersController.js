@@ -22,7 +22,7 @@ class usersController {
 
     async getAllUsers(req, res) {
         try {
-            const users = await Users.find({chatId: {$ne : 0}})
+            const users = await Users.find()
             
             res.json(users)
         } catch (error) {

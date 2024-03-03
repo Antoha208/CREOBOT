@@ -12,28 +12,27 @@ const Sources = require('../models/Sources')
 class creosController {
     async addNewCreo(req, res) {
         try {
-            const {creoName, geo, hashes, duration, formats} = req.body
+            const {creoName, geo, hashes, refers, duration, formats} = req.body
             const condidate = await Creo.findOne({creoName})
-            // const partnerFromDB = await Partners.findOne({name: partner})
-            // const sourcesFromDB = await Sources.find()
+            const count = await Creo.find()
             
             if (condidate) {
                 return res.status(400).json({message: 'Данный шаблон уже есть в базе'})
             }
             const release_date = Date.now()
-            
+
             const file = req.files.file
             console.log(file)
             const creoVideo = uuidv4() + `${creoName}.mp4`
             file.mv(path.resolve('static', creoVideo))
 
-
             const creo = new Creo({
-                // id: partnerFromDB.id, 
+                id: count.length + 1, 
                 creoName: creoName,
                 creoVideo: creoVideo,
                 geo: geo, 
-                hashes: hashes,
+                hashes: hashes.split(','),
+                refers: refers,
                 duration: duration,
                 formats: formats,
                 release_date: release_date,
